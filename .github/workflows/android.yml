@@ -53,6 +53,33 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
+      - name: Align Java and Kotlin targets
+        run: |
+          if [ -f "$ANDROID_DIR/app/build.gradle.kts" ]; then
+            cat >> "$ANDROID_DIR/app/build.gradle.kts" <<'EOF'
+
+          android {
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+          }
+          EOF
+          elif [ -f "$ANDROID_DIR/app/build.gradle" ]; then
+            cat >> "$ANDROID_DIR/app/build.gradle" <<'EOF'
+
+          android {
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+          EOF
+          else
+            echo "App Gradle file not found"
+            exit 1
+          fi
+
       - name: Build APK
         run: gradle -p "$ANDROID_DIR" assembleDebug
 
