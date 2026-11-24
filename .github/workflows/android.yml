@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v5
 
-      - name: Extract source project
+      - name: Extract project
         run: |
           mkdir -p /tmp/streamhub-src
           unzip -q streamhub_source_bundle.zip -d /tmp/streamhub-src
@@ -32,15 +32,15 @@ jobs:
             -printf '%h\n' | head -n 1)
 
           if [ -z "$ANDROID_DIR" ]; then
-            echo "Android Gradle project not found"
+            echo "Android project not found"
             exit 1
           fi
 
           echo "ANDROID_DIR=$ANDROID_DIR" >> "$GITHUB_ENV"
-          echo "Found project: $ANDROID_DIR"
+          echo "Found: $ANDROID_DIR"
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -51,23 +51,14 @@ jobs:
           gradle-version: '8.9'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          accept-android-sdk-licenses: false
+        uses: android-actions/setup-android@v4
 
-      - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses
-
-      - name: Install Android SDK tools
-        run: sdkmanager "platform-tools"
-
-      - name: Build debug APK
+      - name: Build APK
         run: gradle -p "$ANDROID_DIR" assembleDebug
 
-      - name: Upload APK artifact
+      - name: Save APK
         uses: actions/upload-artifact@v4
         with:
           name: StreamHub-V2-APK
           path: ${{ env.ANDROID_DIR }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-          
